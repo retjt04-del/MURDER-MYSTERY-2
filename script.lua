@@ -4,7 +4,19 @@ local noclipActive = false
 local noclipConnection = nil
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Robojini/Tuturial_UI_Library/main/UI_Template_1"))()
 local Window = Library.CreateLib("MURDER MYSTERY 2 by qjy_26", "RJTheme1")
-local Tab = Window:NewTab("Funny")
+local Tab = Window:NewTab("Fun")
+local Section = Tab:NewSection("Fun")
+Section:NewButton("remove the anchor", "ButtonInfo", function()
+    for _, object in ipairs(workspace:GetDescendants()) do
+    if object:IsA("BasePart") and object.Anchored then
+        pcall(function()
+            object.Anchored = false
+        end)
+    end
+end
+print("Анкор успешно снят со всех объектов карты!")
+
+end)
 local Tab = Window:NewTab("Main")
 local Section = Tab:NewSection("PLAYER")
 Section:NewButton("Anti-AFK", "ButtonInfo", function()
