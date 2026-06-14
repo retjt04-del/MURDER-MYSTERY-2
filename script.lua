@@ -6,6 +6,131 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Roboj
 local Window = Library.CreateLib("MURDER MYSTERY 2 by qjy_26", "RJTheme1")
 local Tab = Window:NewTab("Fun")
 local Section = Tab:NewSection("Fun")
+Section:NewToggle("Kill All ", "ToggleInfo", function(state)
+    if state then
+        local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local FLING_SPEED = 400000 
+local TIME_PER_PLAYER = 1.2 
+
+-- Сбрасываем флаг отключения при старте
+_G.DisableFling = false 
+
+print("=== БЕЗОПАСНАЯ FLING AURA ЗАПУЩЕНА ===")
+
+-- Цикл ноклипа с проверкой на отключение
+local noclipConnection
+noclipConnection = RunService.Stepped:Connect(function()
+    if _G.DisableFling == true then
+        if noclipConnection then noclipConnection:Disconnect() end
+        return
+    end
+    
+    if LocalPlayer.Character then
+        for _, part in ipairs(LocalPlayer.Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+local function startSpinning(root)
+    local bodyVelocity = Instance.new("BodyAngularVelocity")
+    bodyVelocity.AngularVelocity = Vector3.new(0, FLING_SPEED, 0)
+    bodyVelocity.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    bodyVelocity.P = math.huge
+    bodyVelocity.Parent = root
+    
+    local antiFall = Instance.new("BodyVelocity")
+    antiFall.Velocity = Vector3.new(0, 0, 0)
+    antiFall.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    antiFall.Parent = root
+    
+    return bodyVelocity, antiFall
+end
+
+task.spawn(function()
+    while true do
+        if _G.DisableFling == true then break end
+        
+        local playersList = Players:GetPlayers()
+        
+        for i = 1, #playersList do
+            if _G.DisableFling == true then break end
+            
+            local target = playersList[i]
+            
+            if target ~= LocalPlayer and target.Character then
+                local myCharacter = LocalPlayer.Character
+                local myRoot = myCharacter and myCharacter:FindFirstChild("HumanoidRootPart")
+                local myHumanoid = myCharacter and myCharacter:FindFirstChildOfClass("Humanoid")
+                
+                local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+                local targetHumanoid = target.Character:FindFirstChildOfClass("Humanoid")
+                
+                if myRoot and myHumanoid and myHumanoid.Health > 0 and targetRoot and targetHumanoid and targetHumanoid.Health > 0 then
+                    myHumanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+                    
+                    local spinner, antiFall = startSpinning(myRoot)
+                    local startTime = os.clock()
+                    
+                    while os.clock() - startTime < TIME_PER_PLAYER do
+                        if _G.DisableFling == true then break end
+                        if not myCharacter or not myRoot or myHumanoid.Health <= 0 then break end
+                        if not target.Character or not targetRoot or targetHumanoid.Health <= 0 then break end
+                        
+                        myRoot.CFrame = targetRoot.CFrame * CFrame.new(0.3, 0, 0.5)
+                        task.wait()
+                    end
+                    
+                    if spinner then spinner:Destroy() end
+                    if antiFall then antiFall:Destroy() end
+                    
+                    if myHumanoid and myHumanoid.Parent then
+                        myHumanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+                    end
+                end
+            end
+        end
+        task.wait(0.5)
+    end
+    print("=== ЦИКЛ FLING AURA ПОЛНОСТЬЮ СТОПНУТ ===")
+end)
+
+    else
+        -- Меняем глобальный флаг, чтобы остановить циклы атаки
+_G.DisableFling = true
+
+-- Восстанавливаем нормальное состояние персонажа
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+if LocalPlayer.Character then
+    local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        -- Возвращаем возможность умирать по нормальным причинам
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+        humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+    end
+    
+    -- Чистим остатки физических крутилок, если они зависли в теле
+    local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if root then
+        for _, obj in ipairs(root:GetChildren()) do
+            if obj:IsA("BodyAngularVelocity") or obj:IsA("BodyVelocity") then
+                obj:Destroy()
+            end
+        end
+    end
+end
+
+print("=== FLING AURA ПОЛНОСТЬЮ ОТКЛЮЧЕНА ===")
+
+    end
+end)
 Section:NewButton("remove the anchor", "ButtonInfo", function()
     for _, object in ipairs(workspace:GetDescendants()) do
     if object:IsA("BasePart") and object.Anchored then
