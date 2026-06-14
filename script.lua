@@ -106,7 +106,110 @@ Section:NewButton("Noclip", "Включить / Выключить ноукли�
     end
 end)
 local Section = Tab:NewSection("ESP")
-Section:NewButton("roles esp", "ButtonInfo", function()
+Section:NewButton("ESP Dead Players", "ButtonInfo", function()
+    -- УНИВЕРСАЛЬНЫЙ ESP НА ЦЕЛЬ ДЛЯ ВСЕХ КАРТ
+local workspace = game:GetService("Workspace")
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+
+-- Безопасная папка для хранения подсветки (защита от античита)
+local safeParent = localPlayer:WaitForChild("PlayerGui")
+
+-- Имя объекта, который мы ищем
+local TARGET_NAME = "Raggy"
+
+-- Функция создания подсветки (BoxHandleAdornment)
+local function createESP(part)
+    local espName = "TargetESP_" .. part:GetDebugId()
+    if safeParent:FindFirstChild(espName) then return end
+
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = espName
+    box.Size = Vector3.new(4, 6, 4) -- Размер коробки вокруг персонажа
+    box.Color3 = Color3.fromRGB(255, 0, 0) -- Ярко-красный цвет (можно изменить)
+    box.AlwaysOnTop = true -- Видно сквозь любые стены
+    box.ZIndex = 10
+    box.Transparency = 0.4
+    box.Adornee = part
+    box.Parent = safeParent
+
+    -- Удаляем подсветку, если цель исчезла с карты или раунд закончился
+    part.AncestryChanged:Connect(function()
+        if not part:IsDescendantOf(workspace) then
+            box:Destroy()
+        end
+    end)
+end
+
+-- Функция сканирования объекта на наличие нужной цели
+local function checkTarget(object)
+    if object.Name == TARGET_NAME then
+        -- Ждем появления HumanoidRootPart внутри цели
+        local hrp = object:WaitForChild("HumanoidRootPart", 5)
+        if hrp then
+            createESP(hrp)
+        end
+    end
+end
+
+-- 1. Проверяем, если цель УЖЕ есть на карте в момент запуска скрипта
+for _, descendant in ipairs(workspace:GetDescendants()) do
+    checkTarget(descendant)
+end
+
+-- 2. Отслеживаем появление цели на ЛЮБОЙ новой карте (работает на всех картах)
+workspace.DescendantAdded:Connect(function(descendant)
+    checkTarget(descendant)
+end)
+
+end)
+Section:NewButton("ESP Gun", "ButtonInfo", function()
+    local workspace = game:GetService("Workspace")
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+local safeParent = localPlayer:WaitForChild("PlayerGui")
+
+local function highlightGun(gunPart)
+    local espName = "GunDropESP_" .. gunPart:GetDebugId()
+    if safeParent:FindFirstChild(espName) then return end
+
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = espName
+    box.Size = Vector3.new(3, 2, 3) -- Небольшой размер под пистолет
+    box.Color3 = Color3.fromRGB(0, 255, 0) -- Ярко-зеленый цвет для пистолета
+    box.AlwaysOnTop = true
+    box.ZIndex = 10
+    box.Transparency = 0.3
+    box.Adornee = gunPart
+    box.Parent = safeParent
+
+    gunPart.AncestryChanged:Connect(function()
+        if not gunPart:IsDescendantOf(workspace) then
+            box:Destroy()
+        end
+    end)
+end
+
+-- Проверка объекта (ищет именно пистолет MM2)
+local function checkObject(object)
+    -- Проверяем стандартные названия выпавшего пистолета в MM2
+    if object.Name == "GunDrop" or object.Name == "Gun" then
+        if object:IsA("BasePart") then
+            highlightGun(object)
+        elseif object:IsA("Model") or object:IsA("Tool") then
+            -- Если это модель, подсвечиваем её центральную часть
+            local handle = object:FindFirstChild("Handle") or object:FindFirstChildWhichIsA("BasePart")
+            if handle then highlightGun(handle) end
+        end
+    end
+end
+
+-- Автоматический поиск на всех картах в реальном времени
+for _, descendant in ipairs(workspace:GetDescendants()) do checkObject(descendant) end
+workspace.DescendantAdded:Connect(checkObject)
+
+end)
+Section:NewButton("ESP Roles", "ButtonInfo", function()
     local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
