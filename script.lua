@@ -273,7 +273,6 @@ print("=== АВТОФАРМ УСПЕШНО ОСТАНОВЛЕН ===")
 end)
 local Section = Tab:NewSection("PLAYER")
 Section:NewButton("Anti-AFK", "ButtonInfo", function()
-    Section:NewButton("Anti-AFK", "ButtonInfo", function()
     game:GetService("Players").LocalPlayer.Idled:Connect(function()
         local camera = workspace.CurrentCamera
         -- Слегка сдвигаем камеру, чтобы обмануть счетчик АФК
