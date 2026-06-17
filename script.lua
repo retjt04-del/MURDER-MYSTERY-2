@@ -273,17 +273,20 @@ print("=== АВТОФАРМ УСПЕШНО ОСТАНОВЛЕН ===")
 end)
 local Section = Tab:NewSection("PLAYER")
 Section:NewButton("Anti-AFK", "ButtonInfo", function()
-    game:GetService("Players").LocalPlayer.Idled:Connect(function()
-        local camera = workspace.CurrentCamera
-        -- Слегка сдвигаем камеру, чтобы обмануть счетчик АФК
-        camera.CFrame = camera.CFrame * CFrame.Angles(0, math.rad(1), 0)
-        task.wait(0.5)
-        camera.CFrame = camera.CFrame * CFrame.Angles(0, math.rad(-1), 0)
+    local player = game:GetService("Players").LocalPlayer
+    local virtualUser = game:GetService("VirtualUser")
+
+    -- Подключаемся к событию бездействия (Idled)
+    player.Idled:Connect(function()
+        -- Имитируем нажатие и отпускание клавиши для сброса таймера АФК
+        virtualUser:CaptureController()
+        virtualUser:ClickButton2(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        print("Система Anti-AFK предотвратила кик!")
     end)
-    print("Альтернативный Анти-АФК запущен!")
+
+    print("Анти-АФК успешно запущен в фоновом режиме!")
 end)
 
-end)
 Section:NewToggle("Infinite Jump", "Прыгайте в воздухе сколько угодно", function(state)
     -- Прячем переменную в глобальную область видимости, чтобы иметь к ней доступ при выключении
     _G.infJumpConnect = _G.infJumpConnect or nil
